@@ -1,31 +1,66 @@
-# Jira Story Fetcher
+# Jira Story Automation Hub 🚀
 
-A premium, modern web dashboard to connect to Jira Cloud and fetch User Stories from your projects.
+A premium, end-to-end dashboard designed to bridge the gap between Jira Story management and automated QA testing.
 
-## Features
-- **Secure Connection**: Uses Jira API Tokens with Basic Auth.
-- **Dynamic Fetching**: Automatically filters for "Story" issue types via JQL.
-- **Premium UI**: Glassmorphism design with real-time status badges.
-- **Responsive**: Works on desktop and mobile.
+## 🌟 Key Features
+- **Smart Jira Connection**: Connect to any Jira Cloud instance via API Token.
+- **ADF Description Parser**: High-fidelity extraction of multi-paragraph Atlassian Document Format descriptions.
+- **QA Suite Generator**: Automatically generates comprehensive test cases covering:
+  - Happy Path
+  - Negative Scenarios
+  - Edge Cases & Boundary Values
+  - Error Handling
+  - Real-user Mistakes (Rapid clicks, network delays, etc.)
+- **Playwright Automation IDE**: 
+  - Generates TypeScript-based Playwright scripts directly from the story context.
+  - Features a built-in code editor for refinement.
+  - Includes a **Live Execution Console** to run tests and see results in the browser.
+- **CORS Bypass Proxy**: Built-in Node.js server to handle secure cross-origin communication with Atlassian servers.
 
-## How to use
-1. **Get a Jira API Token**: Go to [Atlassian API Tokens](https://id.atlassian.com/manage-profile/security/api-tokens) and create a new token.
-2. **Launch the App**: Run `npm run dev` in the terminal.
-3. **Connect**:
-   - **Jira URL**: e.g., `https://yourdomain.atlassian.net`
-   - **Email**: Your Atlassian email address.
-   - **Token**: The API Token you generated.
-   - **Project Key**: e.g., `PROJ` or `SCRUM`.
-4. **View Stories**: The dashboard will automatically fetch and display all User Stories.
+## 🛠️ Technical Stack
+- **Frontend**: React 18, Vite, Axios
+- **Backend/Proxy**: Node.js, Express, Child Process (for Playwright execution)
+- **Automation**: Playwright (TypeScript/Chromium)
+- **Design**: Premium Glassmorphism UI with Vanilla CSS
 
-## CORS Note
-Jira API does not allow direct CORS requests from browsers to `atlassian.net` by default for security. 
-To run this locally, you may need:
-- A CORS browser extension (like "Allow CORS: Access-Control-Allow-Origin").
-- Or use a local proxy if deploying to production.
+## 📂 Project Structure
+- `src/components/`: React UI components (Login, Dashboard, QA Suite, Playwright IDE).
+- `src/services/`: Business logic for Jira API, Test Case Generation, and Script Templates.
+- `server.js`: The backend proxy and test runner engine.
+- `tests/`: Directory where dynamic Playwright scripts are stored and executed.
 
-## Tech Stack
-- React 18
-- Vite
-- Axios
-- Vanilla CSS (Premium Design System)
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Node.js installed.
+- Jira Cloud API Token (Get one [here](https://id.atlassian.com/manage-profile/security/api-tokens)).
+
+### 2. Installation
+```powershell
+# Clone the repository (if applicable)
+# Install dependencies
+npm install
+npx playwright install chromium
+```
+
+### 3. Launching the Hub
+You need to run both the frontend and the backend proxy:
+
+**Terminal 1 (Backend Proxy & Runner):**
+```powershell
+node server.js
+```
+
+**Terminal 2 (Frontend):**
+```powershell
+npm run dev
+```
+
+### 4. Running Tests
+1. Open the app at `http://localhost:5173`.
+2. Connect to your Jira story.
+3. Launch the **Playwright Automation IDE**.
+4. Click **"▶ Launch Automation"** to execute tests and view logs in the live console.
+
+---
+Created with ❤️ by Antigravity AI
