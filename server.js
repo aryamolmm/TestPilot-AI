@@ -64,9 +64,13 @@ app.post('/api/test/run', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Jira CORS Proxy & Test Runner at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Jira CORS Proxy & Test Runner at http://localhost:${PORT}`);
+  });
+}
+
+export default app;
 
 // For production deployment: serve frontend static files
 const __dirname = join(process.cwd(), 'dist');
