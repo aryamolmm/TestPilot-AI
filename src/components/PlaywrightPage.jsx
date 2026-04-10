@@ -97,15 +97,6 @@ const PlaywrightPage = ({ story, credentials, onBack, onGoToDashboard }) => {
           <p style={{ color: '#94a3b8', margin: '0.5rem 0 0' }}>Dynamic Scripting Engine for {story.id}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {errorCount > 0 && (
-            <button 
-              onClick={handleRework} 
-              disabled={isReworking} 
-              style={{ width: 'auto', padding: '0.8rem 1rem', background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.9rem' }}
-            >
-              {isReworking ? 'Reworking...' : '🔄 Fix Errors'}
-            </button>
-          )}
           <button onClick={handleDownload} className="btn-secondary" style={{ width: 'auto', padding: '0.8rem 1rem', fontSize: '0.9rem' }}>Download .ts</button>
           
           <button 
@@ -115,6 +106,16 @@ const PlaywrightPage = ({ story, credentials, onBack, onGoToDashboard }) => {
           >
             🗑️
           </button>
+
+          {errorCount > 0 && (
+            <button 
+              onClick={handleRework} 
+              disabled={isReworking || isGenerating} 
+              style={{ width: 'auto', padding: '0.8rem 1rem', background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.9rem', borderRadius: '8px', cursor: (isReworking || isGenerating) ? 'not-allowed' : 'pointer', opacity: (isReworking || isGenerating) ? 0.5 : 1 }}
+            >
+              {isReworking ? '🛠️ Reworking...' : '🛠️ Fix Errors'}
+            </button>
+          )}
           
           {isRunning ? (
             <button 
