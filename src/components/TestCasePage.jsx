@@ -184,7 +184,7 @@ const TestCasePage = ({ story, credentials, onBack, onGoToAutomation }) => {
           <table style={{ minWidth: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead style={{ background: 'rgba(255,255,255,0.03)' }}>
               <tr>
-                {['TC_ID', 'Summary', 'Step Summary', 'Expected Result', 'Type', 'Actions'].map(h => (
+                {['TC_ID', 'Scenario', 'BDD / Gherkin Rules', 'Type', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '0.9rem 1rem', textAlign: 'left', color: '#818cf8', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -204,16 +204,13 @@ const TestCasePage = ({ story, credentials, onBack, onGoToAutomation }) => {
                           <input type="text" value={editFormData['TC_ID'] || ''} onChange={e => setEditFormData({...editFormData, 'TC_ID': e.target.value})} style={{ width: '80px', padding: '0.4rem', fontSize: '0.8rem' }} />
                         </td>
                         <td style={{ padding: '0.9rem 1rem' }}>
-                          <textarea value={editFormData.Summary || ''} onChange={e => setEditFormData({...editFormData, Summary: e.target.value})} style={{ width: '100%', minWidth: '150px', padding: '0.4rem', fontSize: '0.8rem', minHeight: '60px' }} />
+                          <textarea value={editFormData.Scenario_Name || ''} onChange={e => setEditFormData({...editFormData, Scenario_Name: e.target.value})} style={{ width: '100%', minWidth: '150px', padding: '0.4rem', fontSize: '0.8rem', minHeight: '60px' }} />
                         </td>
                         <td style={{ padding: '0.9rem 1rem' }}>
-                          <textarea value={editFormData['Step Summary'] || ''} onChange={e => setEditFormData({...editFormData, 'Step Summary': e.target.value})} style={{ width: '100%', minWidth: '200px', padding: '0.4rem', fontSize: '0.8rem', minHeight: '60px' }} />
+                          <textarea value={editFormData.Gherkin || ''} onChange={e => setEditFormData({...editFormData, Gherkin: e.target.value})} style={{ width: '100%', minWidth: '250px', padding: '0.4rem', fontSize: '0.8rem', minHeight: '100px', fontFamily: 'monospace' }} />
                         </td>
                         <td style={{ padding: '0.9rem 1rem' }}>
-                          <textarea value={editFormData['Expected Result'] || ''} onChange={e => setEditFormData({...editFormData, 'Expected Result': e.target.value})} style={{ width: '100%', minWidth: '180px', padding: '0.4rem', fontSize: '0.8rem', minHeight: '60px' }} />
-                        </td>
-                        <td style={{ padding: '0.9rem 1rem' }}>
-                          <input type="text" value={editFormData['TestCase Type'] || ''} onChange={e => setEditFormData({...editFormData, 'TestCase Type': e.target.value})} style={{ width: '100px', padding: '0.4rem', fontSize: '0.8rem' }} />
+                          <input type="text" value={editFormData.Type || ''} onChange={e => setEditFormData({...editFormData, Type: e.target.value})} style={{ width: '100px', padding: '0.4rem', fontSize: '0.8rem' }} />
                         </td>
                         <td style={{ padding: '0.9rem 1rem', whiteSpace: 'nowrap' }}>
                           <button onClick={() => handleSaveRow(i)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', marginRight: '0.5rem' }}>Save</button>
@@ -223,22 +220,23 @@ const TestCasePage = ({ story, credentials, onBack, onGoToAutomation }) => {
                     ) : (
                       <>
                         <td style={{ padding: '0.9rem 1rem', color: '#6366f1', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{tc['TC_ID']}</td>
-                        <td style={{ padding: '0.9rem 1rem', fontWeight: '500', maxWidth: '220px' }}>{tc.Summary}</td>
-                        <td style={{ padding: '0.9rem 1rem', color: '#cbd5e1', whiteSpace: 'pre-wrap', maxWidth: '220px' }}>{tc['Step Summary']}</td>
-                        <td style={{ padding: '0.9rem 1rem', color: '#94a3b8', maxWidth: '200px' }}>{tc['Expected Result']}</td>
+                        <td style={{ padding: '0.9rem 1rem', fontWeight: '600', maxWidth: '200px', color: '#f8fafc' }}>{tc.Scenario_Name}</td>
+                        <td style={{ padding: '0.9rem 1rem', color: '#cbd5e1', whiteSpace: 'pre-wrap', minWidth: '250px', fontFamily: '"JetBrains Mono", monospace', fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', margin: '0.5rem', lineHeight: '1.6' }}>
+                          {tc.Gherkin}
+                        </td>
                         <td style={{ padding: '0.9rem 1rem' }}>
                           <span style={{
-                            padding: '0.2rem 0.7rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
-                            background: tc['TestCase Type']?.toLowerCase().includes('negative') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(34, 197, 94, 0.12)',
-                            color: tc['TestCase Type']?.toLowerCase().includes('negative') ? '#f87171' : '#4ade80',
-                            border: `1px solid ${tc['TestCase Type']?.toLowerCase().includes('negative') ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}`
+                            padding: '0.25rem 0.8rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                            background: tc.Type?.toLowerCase().includes('negative') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(34, 197, 94, 0.12)',
+                            color: tc.Type?.toLowerCase().includes('negative') ? '#f87171' : '#4ade80',
+                            border: `1px solid ${tc.Type?.toLowerCase().includes('negative') ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)'}`
                           }}>
-                            {tc['TestCase Type']}
+                            {tc.Type}
                           </span>
                         </td>
                         <td style={{ padding: '0.9rem 1rem', display: 'flex', gap: '0.4rem' }}>
-                           <button onClick={() => handleEditRow(i, tc)} title="Edit" style={{ padding: '0.3rem 0.6rem', background: 'rgba(255,255,255,0.05)', fontSize: '0.85rem', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', borderRadius: '4px' }}>✏️</button>
-                           <button onClick={() => handleDeleteRow(i)} title="Delete" style={{ padding: '0.3rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.85rem', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer', borderRadius: '4px' }}>🗑️</button>
+                           <button onClick={() => handleEditRow(i, tc)} title="Edit" style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.05)', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                           <button onClick={() => handleDeleteRow(i)} title="Delete" style={{ padding: '0.4rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.2)', cursor: 'pointer', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🗑️</button>
                         </td>
                       </>
                     )}

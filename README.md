@@ -1,66 +1,71 @@
-# Jira Story Automation Hub 🚀
+# TestPilot AI 🚀
 
-A premium, end-to-end dashboard designed to bridge the gap between Jira Story management and automated QA testing.
+TestPilot AI is a multi-agent, AI-driven test automation system designed to autonomously transform feature descriptions or Jira tickets into executable Playwright test scripts, BDD Gherkin scenarios, and detailed coverage reports.
 
-## 🌟 Key Features
-- **Smart Jira Connection**: Connect to any Jira Cloud instance via API Token.
-- **ADF Description Parser**: High-fidelity extraction of multi-paragraph Atlassian Document Format descriptions.
-- **QA Suite Generator**: Automatically generates comprehensive test cases covering:
-  - Happy Path
-  - Negative Scenarios
-  - Edge Cases & Boundary Values
-  - Error Handling
-  - Real-user Mistakes (Rapid clicks, network delays, etc.)
-- **Playwright Automation IDE**: 
-  - Generates TypeScript-based Playwright scripts directly from the story context.
-  - Features a built-in code editor for refinement.
-  - Includes a **Live Execution Console** to run tests and see results in the browser.
-- **CORS Bypass Proxy**: Built-in Node.js server to handle secure cross-origin communication with Atlassian servers.
+## 🏗️ Multi-Agent Architecture
 
-## 🛠️ Technical Stack
-- **Frontend**: React 18, Vite, Axios
-- **Backend/Proxy**: Node.js, Express, Child Process (for Playwright execution)
-- **Automation**: Playwright (TypeScript/Chromium)
-- **Design**: Premium Glassmorphism UI with Vanilla CSS
+The system consists of three specialized AI agents working in sequence:
 
-## 📂 Project Structure
-- `src/components/`: React UI components (Login, Dashboard, QA Suite, Playwright IDE).
-- `src/services/`: Business logic for Jira API, Test Case Generation, and Script Templates.
-- `api/index.js`: The backend proxy and test runner engine (compatible with Vercel and Local).
-- `tests/`: Directory where dynamic Playwright scripts are stored and executed.
+1.  **Gherkin Agent** (`gherkinAgent.ts`): Transforms raw feature descriptions or Jira ticket data into professional BDD Gherkin syntax.
+2.  **Test Agent** (`testAgent.ts`): Translates Gherkin scenarios into production-ready Playwright TypeScript code without any unnecessary explanations.
+3.  **Coverage Agent** (`coverageAgent.ts`): Analyzes the generated Gherkin to identify logical gaps, count scenarios, and provide improvement recommendations.
 
-## 🚀 Getting Started
+## 🧠 Memory & Tools
 
-### 1. Prerequisites
-- Node.js installed.
-- Jira Cloud API Token (Get one [here](https://id.atlassian.com/manage-profile/security/api-tokens)).
+-   **Memory** (`memory.json`): Persistent JSON storage that records every execution, including inputs, Gherkin outputs, test code, and coverage analysis.
+-   **Tools** (`tools.ts`): File management helpers that automatically save generated assets:
+    -   Test scripts save to `./tests/generated.spec.ts`
+    -   Gherkin text saves to `./docs/gherkin.txt`
 
-### 2. Installation
-```powershell
-# Clone the repository (if applicable)
-# Install dependencies
+## 🛠️ Tech Stack
+
+-   **Runtime**: Node.js (TypeScript)
+-   **AI**: Groq SDK (Llama3-70b-8192)
+-   **Automation**: Playwright
+-   **Integration**: Jira REST API
+-   **Configuration**: Dotenv
+
+## 🚀 Setup & Usage
+
+### 1. Installation
+
+```bash
 npm install
-npx playwright install chromium
 ```
 
-### 3. Launching the Hub
-You need to run both the frontend and the backend proxy:
+### 2. Configuration (`.env`)
 
-**Terminal 1 (Backend Proxy & Runner):**
-```powershell
-npm start
+Add your credentials to the `.env` file:
+
+```env
+GROQ_API_KEY=your_groq_key
+JIRA_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
+JIRA_API_TOKEN=your_jira_token
 ```
 
-**Terminal 2 (Frontend):**
-```powershell
-npm run dev
+### 3. Running the Pipeline
+
+**From Feature Description:**
+```bash
+npm start "User authentication and profile management"
+```
+
+**From Jira Ticket:**
+```bash
+npm start KAN-123
 ```
 
 ### 4. Running Tests
-1. Open the app at `http://localhost:5173`.
-2. Connect to your Jira story.
-3. Launch the **Playwright Automation IDE**.
-4. Click **"▶ Launch Automation"** to execute tests and view logs in the live console.
 
----
-Created with ❤️ by Antigravity AI
+```bash
+npx playwright test
+```
+
+## 🎥 Demo Steps
+
+1.  **Extraction**: Provide a Jira ID (e.g., `KAN-123`) to fetch live story data.
+2.  **Gherkin Generation**: Watch the Gherkin Agent output scenarios to the console and `./docs/gherkin.txt`.
+3.  **Test Generation**: Observe the Test Agent producing Playwright code in `./tests/generated.spec.ts`.
+4.  **Coverage Analysis**: Review the Coverage Report for scenario counts and missing edge cases.
+5.  **Memory persistence**: Check `memory.json` to see the full historical log of the run.

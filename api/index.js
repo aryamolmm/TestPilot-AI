@@ -19,6 +19,24 @@ app.post('/api/jira/fetch', async (req, res) => {
   if (!baseUrl || !email || !token || !storyId) {
     return res.status(400).json({ error: 'Missing required credentials' });
   }
+
+  // === Mini-Project Mock Functionality ===
+  if (storyId.toUpperCase() === 'MOCK-123') {
+    return res.json({
+      key: 'MOCK-123',
+      fields: {
+        summary: 'Verify E-Commerce functionality including login, add to cart, and checkout',
+        description: 'Application: https://www.saucedemo.com/ \n\nWe need to ensure that the happy path, negative path, and boundary conditions for adding items to cart and checking out are highly robust.',
+        status: { name: 'In Progress' },
+        priority: { name: 'High' },
+        assignee: { displayName: 'TestPilot Tester' },
+        created: new Date().toISOString(),
+        reporter: { displayName: 'System AI' }
+      }
+    });
+  }
+  // =======================================
+
   let url = baseUrl.trim();
   if (!url.startsWith('http')) {
     url = `https://${url}`;
@@ -49,12 +67,13 @@ app.post('/api/ai/generate', async (req, res) => {
        Description: ${story.description || 'No description'}.
        The script MUST be production-ready and include Happy Path, Negative, and Edge cases.
        Return ONLY the TypeScript code block.`
-    : `[AGENT 1: SRS ANALYST]
-       Analyze this Jira Story: "${story.summary}".
+    : `[AGENT 1: BDD ANALYST]
+       Analyze this Requirement/Story: "${story.summary}".
        Description: ${story.description || 'No description'}.
-       Generate 8 diverse test cases (Happy Path, Negative, Edge, Boundary, Error handling, Real-user mistake).
+       Generate 8 diverse test cases (Happy Path, Negative, Edge, Boundary) in Strict BDD / Gherkin format.
        Format: JSON array of objects.
-       Columns: Work Key,Summary,Assignee,Reporter,Step Summary,Expected Result,Version,Folder,TestCase Type,Created By,Created On,Updated By,Updated On,Story Linkages,Is Shareable Step.`;
+       Columns required: "TC_ID" (e.g. TC-01), "Scenario_Name", "Type" (e.g. Happy Path), and "Gherkin" (The Given/When/Then text).
+       Return ONLY the valid JSON array without markdown wrapping.`;
 
   try {
     let text = '';
