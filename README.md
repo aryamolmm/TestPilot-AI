@@ -1,71 +1,125 @@
 # TestPilot AI 🚀
 
-TestPilot AI is a multi-agent, AI-driven test automation system designed to autonomously transform feature descriptions or Jira tickets into executable Playwright test scripts, BDD Gherkin scenarios, and detailed coverage reports.
+**TestPilot AI** is a state-of-the-art, multi-agent autonomous testing platform. It streamlines the entire Quality Assurance lifecycle by transforming raw requirements—whether from Jira tickets or manual entry—into high-quality BDD scenarios, production-ready Playwright scripts, and comprehensive coverage reports.
+
+---
+
+## ✨ Features
+
+- 🤖 **Intelligence Orchestration**: Employs multiple specialized AI agents (Gherkin, Test, Coverage, and Rework).
+- 🎨 **Premium UI/UX**: Modern Dashboard built with React, Vite, Framer Motion, and Lucide.
+- 🔗 **Jira Integration**: Native support for fetching and processing Atlassian Jira stories.
+- 🧠 **Hybrid AI Engine**: Switch between **Google Gemini 1.5 Pro** and **Groq (Llama 3)** for optimized performance.
+- 🛠️ **Auto-Healing**: Integrated "Rework Agent" to automatically debug and fix failing test scripts.
+- 📊 **Coverage Insights**: Deep analysis of test scenarios to identify edge cases and logical gaps.
+
+---
 
 ## 🏗️ Multi-Agent Architecture
 
-The system consists of three specialized AI agents working in sequence:
+The system orchestrates specialized agents to ensure precision at every step:
 
-1.  **Gherkin Agent** (`gherkinAgent.ts`): Transforms raw feature descriptions or Jira ticket data into professional BDD Gherkin syntax.
-2.  **Test Agent** (`testAgent.ts`): Translates Gherkin scenarios into production-ready Playwright TypeScript code without any unnecessary explanations.
-3.  **Coverage Agent** (`coverageAgent.ts`): Analyzes the generated Gherkin to identify logical gaps, count scenarios, and provide improvement recommendations.
+1.  **Gherkin Agent**: Analyzes requirements and generates professional BDD / Gherkin scenarios.
+2.  **Test Agent**: Translates Gherkin scenarios into executable Playwright TypeScript code.
+3.  **Coverage Agent**: Performs static analysis on scenarios to detect missing boundary conditions.
+4.  **Rework Agent**: Analyzes execution logs of failed tests and provides corrected code blocks.
 
-## 🧠 Memory & Tools
-
--   **Memory** (`memory.json`): Persistent JSON storage that records every execution, including inputs, Gherkin outputs, test code, and coverage analysis.
--   **Tools** (`tools.ts`): File management helpers that automatically save generated assets:
-    -   Test scripts save to `./tests/generated.spec.ts`
-    -   Gherkin text saves to `./docs/gherkin.txt`
+---
 
 ## 🛠️ Tech Stack
 
--   **Runtime**: Node.js (TypeScript)
--   **AI**: Groq SDK (Llama3-70b-8192)
--   **Automation**: Playwright
--   **Integration**: Jira REST API
--   **Configuration**: Dotenv
+### Frontend
+- **Framework**: React 18 (Vite)
+- **Styling**: Vanilla CSS (Premium Design System)
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
 
-## 🚀 Setup & Usage
+### Backend & AI
+- **Runtime**: Node.js / TypeScript
+- **Server**: Express.js
+- **Models**: Google Gemini 1.5 Pro, Llama 3.3 (via Groq)
+- **API**: Jira REST API
 
-### 1. Installation
+### Automation
+- **Framework**: Playwright
+- **Language**: TypeScript
 
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Node.js (v18 or higher)
+- A Groq API Key or Google Gemini API Key
+- Atlassian Jira API Token (optional, for Jira integration)
+
+### 2. Installation
 ```bash
+# Install dependencies
 npm install
 ```
 
-### 2. Configuration (`.env`)
-
-Add your credentials to the `.env` file:
-
+### 3. Configuration
+Create a `.env` file in the root directory:
 ```env
+# AI API Keys
 GROQ_API_KEY=your_groq_key
+GEMINI_API_KEY=your_gemini_key
+
+# Jira Integration
 JIRA_URL=https://your-domain.atlassian.net
 JIRA_EMAIL=your-email@example.com
 JIRA_API_TOKEN=your_jira_token
 ```
 
-### 3. Running the Pipeline
+### 4. Running the Application
 
-**From Feature Description:**
+**Run Frontend & Backend (Development):**
 ```bash
-npm start "User authentication and profile management"
+# Terminal 1: Start the Backend Server
+npm run server
+
+# Terminal 2: Start the Frontend UI
+npm run dev
 ```
 
-**From Jira Ticket:**
+**Run CLI Pipeline:**
 ```bash
-npm start KAN-123
+# Process a manual description
+npm start "Verify user login with MFA"
+
+# Process a Jira Story
+npm start KAN-101
 ```
 
-### 4. Running Tests
+---
 
-```bash
-npx playwright test
+## 📂 Project Structure
+
+```text
+├── api/                # Express Backend & AI Proxy
+├── src/                # Frontend & Core Logic
+│   ├── ai/             # Specialized AI Agents
+│   ├── components/     # Premium React Components
+│   ├── App.jsx         # Application Entry
+│   └── tools.ts        # File I/O Utilities
+├── tests/              # Generated Playwright Scripts
+├── docs/               # Generated Gherkin & Reports
+└── playwright.config.ts # Automation Configuration
 ```
 
-## 🎥 Demo Steps
+---
 
-1.  **Extraction**: Provide a Jira ID (e.g., `KAN-123`) to fetch live story data.
-2.  **Gherkin Generation**: Watch the Gherkin Agent output scenarios to the console and `./docs/gherkin.txt`.
-3.  **Test Generation**: Observe the Test Agent producing Playwright code in `./tests/generated.spec.ts`.
-4.  **Coverage Analysis**: Review the Coverage Report for scenario counts and missing edge cases.
-5.  **Memory persistence**: Check `memory.json` to see the full historical log of the run.
+## 🎥 Workflow Demonstration
+
+1.  **Input**: Feed a Jira ID or a raw feature description into the Dashboard.
+2.  **BDD Generation**: The **Gherkin Agent** expands requirements into detailed scenarios.
+3.  **Code Generation**: The **Test Agent** produces a Playwright `.spec.ts` file.
+4.  **Execution**: Run tests directly from the UI or CLI.
+5.  **Analytics**: The **Coverage Agent** provides a feedback loop for continuous improvement.
+
+---
+
+## 📄 License
+TestPilot AI is research-grade software. All rights reserved.
+
