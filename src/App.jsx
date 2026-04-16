@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, History as HistoryIcon, Beaker, Code2, LogOut } from 'lucide-react'
+import { LayoutDashboard, History as HistoryIcon, Beaker, Code2, LogOut, Brain, Zap } from 'lucide-react'
 
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import TestCasePage from './components/TestCasePage'
 import PlaywrightPage from './components/PlaywrightPage'
 import History from './components/History'
+import MemoryPage from './components/MemoryPage'
+import SuperAgent from './components/SuperAgent'
 
 function App() {
   const [credentials, setCredentials] = useState(null)
-  const [activeTab, setActiveTab] = useState('dashboard') // dashboard, history, qa, automation
+  const [activeTab, setActiveTab] = useState('dashboard') // dashboard, history, qa, automation, memory, super
   const [currentStory, setCurrentStory] = useState(null)
   const [historyList, setHistoryList] = useState([])
 
@@ -96,14 +98,26 @@ function App() {
           <SidebarButton 
             active={activeTab === 'dashboard'} 
             icon={<LayoutDashboard size={18} />} 
-            label="Engine Config" 
+            label="Dashboard" 
             onClick={() => setActiveTab('dashboard')} 
+          />
+          <SidebarButton 
+            active={activeTab === 'super'} 
+            icon={<Zap size={18} />} 
+            label="Super Agent" 
+            onClick={() => setActiveTab('super')} 
           />
           <SidebarButton 
             active={activeTab === 'history'} 
             icon={<HistoryIcon size={18} />} 
             label="Generation History" 
             onClick={() => setActiveTab('history')} 
+          />
+          <SidebarButton 
+            active={activeTab === 'memory'} 
+            icon={<Brain size={18} />} 
+            label="AI Memory" 
+            onClick={() => setActiveTab('memory')} 
           />
           
           <div style={{ margin: '1.5rem 0 0.5rem', fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Active Session</div>
@@ -143,11 +157,19 @@ function App() {
             />
           )}
 
+          {activeTab === 'super' && (
+             <SuperAgent />
+          )}
+
           {activeTab === 'history' && (
              <History 
                historyList={historyList} 
                onViewStory={viewFromHistory} 
              />
+          )}
+
+          {activeTab === 'memory' && (
+             <MemoryPage />
           )}
 
           {activeTab === 'qa' && currentStory && (

@@ -1,32 +1,38 @@
 import { groq, GROQ_MODEL } from "./groqClient.ts";
 
-export async function analyzeCoverage(gherkin: string): Promise<string> {
+/**
+ * Coverage Analysis Agent
+ * 
+ * Compares Gherkin scenarios with test cases to identify coverage gaps.
+ */
+export async function analyzeCoverage(gherkin: string, testCode: string): Promise<{
+  coverage_status: "complete" | "incomplete",
+  missing_cases: string[],
+  quality_score: number
+}> {
   const systemPrompt = `
-    You are a QA test coverage expert.
-    Analyze Gherkin scenarios and identify missing test coverage.
+    You are a Coverage Analysis Agent.
     
-    REQUIREMENTS
-    Return:
-    1. Total Scenario Count
-    2. Missing Edge Cases
-    3. Improvement Suggestions
+    Inputs:
+    - Gherkin scenarios
+    - Test cases (Playwright code)
     
-    CONTEXT
-    Application: https://www.saucedemo.com/
-    Focus areas:
-    - Login
-    - Cart
-    - Checkout
+    Your task:
+    - Compare both and identify missing or weak coverage
     
-    RULES
-    * Be specific
-    * Mention real edge cases
-    * No generic answers
-    
-    Output: Return a clean textual summary exactly following the requirements.
+    Rules:
+    - Be strict
+    - Identify edge cases not covered by the test code but present in Gherkin OR common logic gaps
+    - Do not assume completeness
+    - Return ONLY valid JSON:
+    {
+      "coverage_status": "complete" | "incomplete",
+      "missing_cases": ["case1", "case2"],
+      "quality_score": 0-100
+    }
   `;
 
-  const userPrompt = `Analyze the coverage for these scenarios:\n\n${gherkin}`;
+  const userPrompt = `Gherkin scenarios:\n${gherkin}\n\nTest Code:\n${testCode}`;
 
   try {
     const response = await groq.chat.completions.create({
@@ -35,10 +41,12 @@ export async function analyzeCoverage(gherkin: string): Promise<string> {
         { role: "user", content: userPrompt }
       ],
       model: GROQ_MODEL,
-      temperature: 0.3,
+      temperature: 0.1,
+      response_format: { type: "json_object" }
     });
 
-    return response.choices[0]?.message?.content || "Coverage analysis failed.";
+    const content = response.choices[0]?.message?.content || '{"coverage_status": "incomplete", "missing_cases": [], "quality_score": 0}';
+    return JSON.parse(content);
   } catch (error: any) {
     console.error(`❌ Coverage Agent Error: ${error.message}`);
     throw error;

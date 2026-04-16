@@ -9,12 +9,15 @@ const getProxyUrl = () => window.location.hostname === 'localhost' || window.loc
  */
 export const generateTestCasesAI = async (story, apiKey, engine = 'gemini') => {
   const PROXY_URL = getProxyUrl();
+  const userMemory = localStorage.getItem('testpilot_ai_memory') || '';
+  
   try {
     const response = await axios.post(`${PROXY_URL}/api/ai/generate`, {
       story,
       apiKey,
       type: 'testcases',
-      engine
+      engine,
+      userMemory
     });
     return response.data.testCases;
   } catch (error) {
@@ -29,12 +32,15 @@ export const generateTestCasesAI = async (story, apiKey, engine = 'gemini') => {
  */
 export const generatePlaywrightScriptAI = async (story, apiKey, engine = 'gemini') => {
   const PROXY_URL = getProxyUrl();
+  const userMemory = localStorage.getItem('testpilot_ai_memory') || '';
+
   try {
     const response = await axios.post(`${PROXY_URL}/api/ai/generate`, {
       story,
       apiKey,
       type: 'script',
-      engine
+      engine,
+      userMemory
     });
     return response.data.script;
   } catch (error) {
@@ -48,13 +54,16 @@ export const generatePlaywrightScriptAI = async (story, apiKey, engine = 'gemini
  */
 export const reworkScriptAI = async (story, script, errorLog, apiKey, engine = 'gemini') => {
   const PROXY_URL = getProxyUrl();
+  const userMemory = localStorage.getItem('testpilot_ai_memory') || '';
+
   try {
     const response = await axios.post(`${PROXY_URL}/api/ai/rework`, {
       story,
       script,
       errorLog,
       apiKey,
-      engine
+      engine,
+      userMemory
     });
     return response.data.script;
   } catch (error) {

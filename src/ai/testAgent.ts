@@ -1,37 +1,29 @@
 import { groq, GROQ_MODEL } from "./groqClient.ts";
 
-export async function generateTest(gherkin: string): Promise<string> {
+/**
+ * Playwright Test Generation Agent
+ * 
+ * Converts Gherkin scenarios into Playwright TypeScript test scripts.
+ */
+export async function generateTest(gherkin: string): Promise<{ test_code: string }> {
   const systemPrompt = `
-    You are a Playwright + TypeScript expert.
-    Convert Gherkin into FULLY RUNNABLE Playwright test code.
+    You are a Playwright Test Generation Agent.
+    
+    Your task:
+    - Convert Gherkin scenarios into Playwright TypeScript test scripts
+    
+    Rules:
+    - Use proper Playwright syntax (@playwright/test)
+    - Include assertions (expect)
+    - Cover all scenarios provided
+    - Return ONLY valid JSON in this format: { "test_code": "..." }
+    - No explanations, no markdown blocks.
 
-    ## Requirements
-    Application: https://www.saucedemo.com/
+    Target Application: https://www.saucedemo.com/
     Credentials: username: standard_user, password: secret_sauce
-
-    ## Selectors
-    #user-name
-    #password
-    #login-button
-    .inventory_list
-    .shopping_cart_link
-    #checkout
-    #continue
-    #finish
-    .complete-header
-    [data-test="error"]
-
-    ## Rules
-    * Use @playwright/test
-    * Generate MULTIPLE test() blocks
-    * Each scenario -> one test()
-    * Use correct selectors
-    * Ensure code runs without modification
-    * No explanations
-    - Output: Return ONLY the TypeScript code block. NO markdown code blocks, NO backticks.
   `;
 
-  const userPrompt = `Generate Playwright TypeScript code for these Gherkin scenarios:\n\n${gherkin}`;
+  const userPrompt = `Gherkin scenarios:\n\n${gherkin}`;
 
   try {
     const response = await groq.chat.completions.create({
@@ -41,13 +33,11 @@ export async function generateTest(gherkin: string): Promise<string> {
       ],
       model: GROQ_MODEL,
       temperature: 0.1,
+      response_format: { type: "json_object" }
     });
 
-    let code = response.choices[0]?.message?.content || "";
-    // Clean up if the model accidentally includes markdown blocks
-    code = code.replace(/```typescript/g, "").replace(/```ts/g, "").replace(/```/g, "").trim();
-    
-    return code;
+    const content = response.choices[0]?.message?.content || '{"test_code": ""}';
+    return JSON.parse(content);
   } catch (error: any) {
     console.error(`❌ Test Agent Error: ${error.message}`);
     throw error;

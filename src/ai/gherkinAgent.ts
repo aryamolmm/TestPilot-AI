@@ -1,24 +1,27 @@
 import { groq, GROQ_MODEL } from "./groqClient.ts";
 
-export async function generateGherkin(featureDescription: string): Promise<string> {
+/**
+ * Gherkin Generation Agent
+ * 
+ * Converts a feature description into structured BDD scenarios.
+ */
+export async function generateGherkin(featureDescription: string): Promise<{ gherkin: string }> {
   const systemPrompt = `
-    You are a QA automation expert. 
-    Your task is to generate HIGH-QUALITY Gherkin scenarios for a real application based on the feature description.
+    You are a Gherkin Generation Agent.
     
-    REQUIREMENTS:
-    - Generate at least 4-6 scenarios.
-    - Include Positive cases, Negative cases, and Edge cases.
-    - Return ONLY valid Gherkin text.
+    Your task:
+    - Convert feature into structured BDD scenarios (Feature: ... Scenario: ... Given When Then)
+    - Cover main flow + edge cases
     
-    RULES:
-    - No explanations
-    - No extra text
-    - Proper BDD format (Feature, Scenario, Given, When, Then)
-    - Multiple scenarios required
-    - Do not include markdown code blocks (e.g. no \`\`\`gherkin or \`\`\`)
+    Rules:
+    - Use Given / When / Then format
+    - Include at least 3 scenarios
+    - Keep it realistic for automation
+    - Return ONLY valid JSON in this format: { "gherkin": "..." }
+    - No explanations, no markdown blocks.
   `;
 
-  const userPrompt = `Translate the following feature description into Gherkin scenarios:\n\n${featureDescription}`;
+  const userPrompt = `Feature description: ${featureDescription}`;
 
   try {
     const response = await groq.chat.completions.create({
@@ -27,10 +30,12 @@ export async function generateGherkin(featureDescription: string): Promise<strin
         { role: "user", content: userPrompt }
       ],
       model: GROQ_MODEL,
-      temperature: 0.2,
+      temperature: 0.1,
+      response_format: { type: "json_object" }
     });
 
-    return response.choices[0]?.message?.content || "No Gherkin generated.";
+    const content = response.choices[0]?.message?.content || '{"gherkin": ""}';
+    return JSON.parse(content);
   } catch (error: any) {
     console.error(`❌ Gherkin Agent Error: ${error.message}`);
     throw error;
