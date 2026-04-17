@@ -9,6 +9,8 @@ import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -574,6 +576,265 @@ Pipeline executed with memory-aware tool-calling logic`;
   res.send(textOutput);
 });
 
+// ─── Super Agent Full Execution Pipeline ────────────────────────────────────
+// Calls each agent in sequence using real Groq API calls
+
+async function callGroq(apiKey, prompt) {
+  try {
+    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+      response_format: { type: 'json_object' }
+    }, {
+      headers: {
+        'Authorization': `Bearer ${apiKey || process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data.choices[0].message.content;
+  } catch (err) {
+    const groqMsg = err.response?.data?.error?.message || err.response?.data?.message || err.message;
+    const statusCode = err.response?.status;
+    if (statusCode === 401) throw new Error(`Groq API key invalid or missing (401). Check your GROQ_API_KEY in .env`);
+    if (statusCode === 429) throw new Error(`Groq rate limit exceeded (429). Please wait or upgrade your Groq plan.`);
+    throw new Error(`Groq API error ${statusCode || ''}: ${groqMsg}`);
+  }
+}
+
+app.post('/api/agent/super/run', async (req, res) => {
+  const { input, userMemory = '', engine = 'groq', apiKey } = req.body;
+  if (!input) return res.status(400).json({ error: 'Missing input for Super Agent' });
+
+  const resolvedKey = apiKey || process.env.GROQ_API_KEY;
+  const executionTrace = [];
+  const startTime = Date.now();
+  let step = 0;
+
+  const log = (agent, tool, message, status = 'running') => {
+    step++;
+    const entry = { step, agent, tool, message, status, ts: Date.now() - startTime };
+    executionTrace.push(entry);
+    return entry;
+  };
+
+  try {
+    // ── Step 0: Memory Check ───────────────────────────────────────────────
+    log('Orchestrator', null, 'Received user input — initialising pipeline', 'info');
+    log('MemoryAgent', null, 'Scanning memory index for semantic similarity...', 'running');
+
+    const memory = await loadMemoryData();
+    let bestMatch = null, bestScore = 0;
+    for (const entry of memory) {
+      const score = computeSimilarity(input, entry.input);
+      if (score > bestScore) { bestScore = score; bestMatch = entry; }
+    }
+
+    const used_memory = bestScore > 0.45;
+    const memory_action = used_memory ? (bestScore > 0.85 ? 'reuse' : 'improve') : 'fresh';
+    const memory_summary = used_memory
+      ? `Semantic match identified (${Math.round(bestScore * 100)}%). Strategy: ${memory_action}.`
+      : `No sufficiently similar past execution found (best score: ${Math.round(bestScore * 100)}%). Generating fresh output.`;
+
+    log('MemoryAgent', null,
+      used_memory ? `Match found — ${Math.round(bestScore * 100)}% similarity. Mode: ${memory_action}` : 'No match — fresh run initiated.',
+      used_memory ? 'match' : 'no_match'
+    );
+
+    if (userMemory) {
+      log('MemoryAgent', null, 'Merging user-defined memory overrides into active session', 'info');
+    }
+
+    // If REUSE and high confidence — serve directly from memory
+    if (memory_action === 'reuse' && bestMatch) {
+      log('Orchestrator', null, 'High confidence reuse — serving cached pipeline outputs', 'bypass');
+      return res.json({
+        memory: { used_memory, memory_action, memory_summary, similarity_score: bestScore },
+        execution_trace: executionTrace,
+        pipeline_steps: [
+          { step: 1, agent: 'ArchitectAgent', tool: 'generate_gherkin', status: 'reused', output: bestMatch.gherkin },
+          { step: 2, agent: 'AutomationAgent', tool: 'generate_test_cases', status: 'reused', output: bestMatch.testCode },
+          { step: 3, agent: 'CoverageAgent', tool: 'analyze_coverage', status: 'reused', output: bestMatch.coverage },
+          { step: 4, agent: 'ReworkAgent', tool: 'improve_test_cases', status: 'bypassed', output: null }
+        ],
+        final_output: {
+          gherkin: bestMatch.gherkin,
+          testCode: bestMatch.testCode,
+          coverage: bestMatch.coverage,
+          improvedTestCode: null
+        },
+        status: 'completed',
+        total_ms: Date.now() - startTime
+      });
+    }
+
+    // ── Step 1: ArchitectAgent → generate_gherkin ─────────────────────────
+    log('ArchitectAgent', 'generate_gherkin', 'Calling tool: generate_gherkin — generating BDD scenarios...', 'running');
+
+    const memCtx = userMemory ? `\n\n[USER MEMORY / PREFERENCES]\n${userMemory}\n` : '';
+    const gherkinPrompt = `You are a Gherkin Generation Agent (ArchitectAgent).
+${memCtx}
+Feature description: "${input}"
+
+Your task:
+- Convert the feature into structured BDD scenarios (Feature / Scenario / Given / When / Then)
+- Cover happy path + edge cases + negative scenarios
+- Include at least 4 scenarios
+
+Rules:
+- Use strict Given / When / Then / And format
+- Use realistic, testable steps
+- Return ONLY valid JSON: { "gherkin": "..." }`;
+
+    const gherkinRaw = await callGroq(resolvedKey, gherkinPrompt);
+    const gherkinData = JSON.parse(gherkinRaw);
+    const gherkin = gherkinData.gherkin || '';
+
+    log('ArchitectAgent', 'generate_gherkin', `Tool returned ${gherkin.split('Scenario').length - 1} Gherkin scenarios`, 'completed');
+
+    // ── Step 2: AutomationAgent → generate_test_cases ─────────────────────
+    log('AutomationAgent', 'generate_test_cases', 'Calling tool: generate_test_cases — creating Playwright scripts...', 'running');
+
+    const testPrompt = `You are a Playwright Test Generation Agent (AutomationAgent).
+${memCtx}
+Gherkin Scenarios:
+${gherkin}
+
+Your task:
+- Convert ALL Gherkin scenarios into complete Playwright TypeScript test scripts
+- Target application: https://www.saucedemo.com/ (username: standard_user, password: secret_sauce)
+
+Rules:
+- Use @playwright/test imports and test() / expect() syntax
+- Map each Scenario to exactly one test() block
+- Include proper assertions
+- Return ONLY valid JSON: { "test_code": "..." }`;
+
+    const testRaw = await callGroq(resolvedKey, testPrompt);
+    const testData = JSON.parse(testRaw);
+    const testCode = testData.test_code || '';
+
+    log('AutomationAgent', 'generate_test_cases', `Tool returned Playwright script (${testCode.split('\n').length} lines)`, 'completed');
+
+    // ── Step 3: CoverageAgent → analyze_coverage ──────────────────────────
+    log('CoverageAgent', 'analyze_coverage', 'Calling tool: analyze_coverage — validating coverage gaps...', 'running');
+
+    const coveragePrompt = `You are a Coverage Analysis Agent (CoverageAgent).
+
+Gherkin Scenarios:
+${gherkin}
+
+Playwright Test Code:
+${testCode}
+
+Your task:
+- Compare both — identify missing or weak coverage
+- Be strict — do not assume completeness
+
+Return ONLY valid JSON:
+{
+  "coverage_status": "complete" | "incomplete",
+  "missing_cases": ["case description 1", "case description 2"],
+  "coverage_percentage": 0-100,
+  "quality_score": 0-100,
+  "summary": "one-line coverage summary"
+}`;
+
+    const coverageRaw = await callGroq(resolvedKey, coveragePrompt);
+    const coverage = JSON.parse(coverageRaw);
+
+    log('CoverageAgent', 'analyze_coverage',
+      `Tool returned: Status=${coverage.coverage_status}, Quality=${coverage.quality_score}/100, Missing=${coverage.missing_cases?.length || 0} cases`,
+      'completed'
+    );
+
+    // ── Step 4: ReworkAgent → improve_test_cases (conditional) ────────────
+    let improvedTestCode = null;
+    const needsRework = coverage.coverage_status === 'incomplete' || memory_action !== 'reuse';
+
+    if (needsRework) {
+      log('ReworkAgent', 'improve_test_cases',
+        `Coverage gap detected — calling tool: improve_test_cases (${coverage.missing_cases?.length || 0} missing cases)`,
+        'running'
+      );
+
+      const reworkPrompt = `You are a Test Improvement Agent (ReworkAgent).
+${memCtx}
+Gherkin Scenarios:
+${gherkin}
+
+Existing Playwright Test Code:
+${testCode}
+
+Missing Coverage Areas identified by CoverageAgent:
+${(coverage.missing_cases || []).join('\n')}
+
+Your task:
+- Enhance the existing test cases to close these coverage gaps
+- Add missing test scenarios, strengthen assertions where weak
+- Do NOT rewrite everything — only add/fix what is needed
+
+Return ONLY valid JSON: { "improved_test_code": "..." }`;
+
+      const reworkRaw = await callGroq(resolvedKey, reworkPrompt);
+      const reworkData = JSON.parse(reworkRaw);
+      const rawImproved = reworkData.improved_test_code;
+      if (Array.isArray(rawImproved)) {
+        improvedTestCode = rawImproved.join('\n');
+      } else if (rawImproved && typeof rawImproved === 'object') {
+        improvedTestCode = JSON.stringify(rawImproved, null, 2);
+      } else {
+        improvedTestCode = String(rawImproved || testCode);
+      }
+
+      const improvedLines = improvedTestCode.split('\n').length;
+      const origLines = (testCode || '').split('\n').length;
+      log('ReworkAgent', 'improve_test_cases',
+        `Tool returned improved script (${improvedLines} lines - was ${origLines})`,
+        'completed'
+      );
+    } else {
+      log('ReworkAgent', 'improve_test_cases', 'Bypassed — coverage complete, no rework required', 'bypassed');
+    }
+
+    // ── Save to memory ─────────────────────────────────────────────────────
+    log('Orchestrator', null, 'Pipeline complete — saving run to memory index', 'info');
+    const finalTestCode = improvedTestCode || testCode;
+    const coverageStr = JSON.stringify(coverage);
+    const exists = memory.some(e => e.input === input);
+    if (!exists) {
+      memory.push({ input, gherkin, testCode: finalTestCode, coverage: coverageStr, timestamp: new Date().toISOString() });
+      await writeFile(MEMORY_FILE, JSON.stringify(memory, null, 2));
+    }
+
+    log('Orchestrator', null, 'Memory index updated successfully', 'info');
+
+    return res.json({
+      memory: { used_memory, memory_action, memory_summary, similarity_score: bestScore },
+      execution_trace: executionTrace,
+      pipeline_steps: [
+        { step: 1, agent: 'ArchitectAgent', tool: 'generate_gherkin', status: 'completed', output: gherkin },
+        { step: 2, agent: 'AutomationAgent', tool: 'generate_test_cases', status: 'completed', output: testCode },
+        { step: 3, agent: 'CoverageAgent', tool: 'analyze_coverage', status: 'completed', output: coverage },
+        { step: 4, agent: 'ReworkAgent', tool: 'improve_test_cases', status: needsRework ? 'completed' : 'bypassed', output: improvedTestCode }
+      ],
+      final_output: {
+        gherkin,
+        testCode,
+        coverage,
+        improvedTestCode
+      },
+      status: 'completed',
+      total_ms: Date.now() - startTime
+    });
+
+  } catch (err) {
+    console.error('Super Agent Run Error:', err.message);
+    executionTrace.push({ step: step + 1, agent: 'Orchestrator', tool: null, message: `❌ Pipeline failed: ${err.message}`, status: 'error', ts: Date.now() - startTime });
+    return res.status(500).json({ error: err.message, execution_trace: executionTrace, status: 'error' });
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Proxy endpoint to fetch Jira stories
@@ -729,3 +990,4 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 }
 
 export default app;
+
