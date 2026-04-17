@@ -688,7 +688,8 @@ Rules:
 
     const gherkinRaw = await callGroq(resolvedKey, gherkinPrompt);
     const gherkinData = JSON.parse(gherkinRaw);
-    const gherkin = gherkinData.gherkin || '';
+    const rawGherkin = gherkinData.gherkin || '';
+    const gherkin = typeof rawGherkin === 'object' ? JSON.stringify(rawGherkin, null, 2) : String(rawGherkin);
 
     log('ArchitectAgent', 'generate_gherkin', `Tool returned ${gherkin.split('Scenario').length - 1} Gherkin scenarios`, 'completed');
 
@@ -712,7 +713,8 @@ Rules:
 
     const testRaw = await callGroq(resolvedKey, testPrompt);
     const testData = JSON.parse(testRaw);
-    const testCode = testData.test_code || '';
+    const rawTest = testData.test_code || '';
+    const testCode = typeof rawTest === 'object' ? JSON.stringify(rawTest, null, 2) : String(rawTest);
 
     log('AutomationAgent', 'generate_test_cases', `Tool returned Playwright script (${testCode.split('\n').length} lines)`, 'completed');
 

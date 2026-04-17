@@ -1,6 +1,35 @@
 # TestPilot AI 🚀
 
-**TestPilot AI** is a state-of-the-art, multi-agent autonomous testing platform. It streamlines the entire Quality Assurance lifecycle by transforming raw requirements into high-quality BDD scenarios, production-ready Playwright scripts, and comprehensive coverage reports.
+**TestPilot AI** is a state-of-the-art, multi-agent autonomous testing platform. 
+
+### 🛑 The Problem
+Modern QA cycles are often the bottleneck in Rapid Application Development. Manually translating business requirements into BDD scenarios, writing stable automation scripts, and ensuring comprehensive coverage is time-consuming, expensive, and prone to human error.
+
+### ✅ The Solution
+TestPilot AI streamlines the entire Quality Assurance lifecycle. It transforms raw requirements (or Jira stories) into:
+- **High-quality BDD/Gherkin scenarios**
+- **Production-ready Playwright scripts**
+- **Deep-dive coverage analysis & self-healing rework loops**
+
+---
+
+## 👥 Team Alpha & Contributions
+- **Lead AI Architect**: System orchestration, Multi-agent logic, and Memory layer.
+- **Frontend Engineer**: Premium React Dashboard & Super Agent Terminal UI.
+- **QA Automation Lead**: Playwright integration and Coverage Agent heuristics.
+- **Backend Developer**: Jira Proxy, API endpoints, and Groq/Gemini integration.
+
+---
+
+## 📸 Prototype Gallery
+
+| Super Agent Execution | BDD Scenario Generation |
+| :---: | :---: |
+| ![Super Agent Run](screenshots/super_agent_run.png) | ![BDD Scenarios](screenshots/bdd_scenarios.png) |
+
+| Playwright Script Creation | Custom Architecture |
+| :---: | :---: |
+| ![Playwright Scripts](screenshots/playwright_scripts.png) | ![Architecture](docs/architecture.png) |
 
 ---
 
@@ -49,21 +78,24 @@ npm start KAN-101
 
 ---
 
-## 🛠️ Tools Used
+## 🛠️ Tech Stack & Versions
 
-### Core Frameworks
-- **Vite + React 18**: Frontend architectural base for ultra-fast HMR and reactive UI.
-- **Node.js + Express**: Robust backend proxying and agent orchestration.
-- **TypeScript**: Ensuring type safety across the entire agentic layer.
+### Frontend
+- **React 18.2.0**: UI library for the agentic studio.
+- **Vite 5.0.0**: Build tool for ultra-fast development.
+- **Framer Motion 10.16.5**: High-performance animations.
+- **Lucide React 1.8.0**: Premium iconography.
 
-### AI & Agents
-- **Google Gemini 1.5 Pro**: Primary model for deep semantic requirement analysis and logic generation.
-- **Groq (Llama 3.3 - 70B)**: Used for high-speed, low-latency agent responses and script refinement.
-- **Framer Motion**: Powering the advanced micro-animations and UI transitions.
+### Backend & AI
+- **Node.js 20.x**: Core runtime.
+- **Express 4.18.2**: Web framework for AI proxying.
+- **Google Gemini 1.5 Pro**: Primary semantic reasoning engine.
+- **Groq (Llama 3.3 - 70B)**: High-speed agentic processing.
+- **Axios 1.6.2**: Robust HTTP client for API calls.
 
-### Testing & Automation
-- **Playwright**: The target automation engine for all generated test scripts.
-- **Lucide React**: Premium iconography for the agentic studio.
+### Testing
+- **Playwright 1.40.0**: Target automation framework.
+- **TypeScript 5.3.3**: Type safety across the lifecycle.
 
 ---
 
@@ -89,11 +121,16 @@ As the lead AI architect for this project, here are the key observations from th
 
 ```text
 ├── api/                # Express Backend & Orchestration Endpoints
+├── docs/                # Architecture & Project Documentation
+│   ├── architecture.png     # Visual flow of the Multi-Agent system
+│   ├── architecture-overview.md # Technical write-up of the agent logic
+│   └── overview.md          # Project high-level overview
 ├── src/                # Frontend & Core Logic
 │   ├── ai/             # Multi-Agent Logic (Memory, Gherkin, Test, Coverage, Rework)
 │   ├── components/     # Premium React Components (Dashboard, SuperAgent, MemoryPage)
 │   ├── services/       # API Integration Layer
-├── tests/              # Generated Playwright Scripts
+├── tests/              # Actual Generated Playwright Scripts
+│   └── generated.spec.ts # Production-ready test suite
 └── playwright.config.ts # Automation Configuration
 ```
 
